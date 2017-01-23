@@ -4,8 +4,8 @@ import time
 import openpyxl
 
 # headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5)'}  # MAC
-# headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'} # CHROME
-headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'}  # FIREFOX
+headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'} # CHROME
+# headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'}  # FIREFOX
 
 wb = openpyxl.Workbook()
 sheet = wb.get_active_sheet()
@@ -59,13 +59,15 @@ lista_insumos = []
 requisicao, status = request_site(url, headers, num_pagina)
 lista_precos_insumos = scraping_insumos(requisicao, status, num_pagina, lista_insumos)
 
+
 # for i in range(len(lista_precos_insumos)):
 #     print(lista_precos_insumos[i])
 
-
+# gera arquivo xlsx
 for numeroLinha in range(2, len(lista_insumos)):
     nome_valor = str(lista_insumos[numeroLinha]).split(":")
-    sheet.cell(row=numeroLinha, column=1).value = nome_valor[0]
-    sheet.cell(row=numeroLinha, column=2).value = nome_valor[1]
+
+    sheet.cell(row=numeroLinha, column=1).value = nome_valor[0].replace('{', '').replace('\'', '')
+    sheet.cell(row=numeroLinha, column=2).value = nome_valor[1].replace('\'', '').replace('}', '')
 
 wb.save('maltes_LAMAS.xlsx')
