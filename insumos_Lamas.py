@@ -2,12 +2,13 @@ import requests
 import bs4
 import time
 import openpyxl
+from openpyxl.styles import Font, NamedStyle
 
 
 NOME_SITE = 'Lamas'
 
-headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5)'}  # MAC
-# headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'} # CHROME
+# headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5)'}  # MAC
+headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'} # CHROME
 # headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'}  # FIREFOX
 
 wb = openpyxl.Workbook()
@@ -79,15 +80,18 @@ def gera_planilha(lista_insumos, wb, planilha, site):
     :param site: nome do site que está sendo realizado o scraping
     :return: sem retorno. Grava a planilha.
     """
+    fonte = Font(bold=True, size=14)
+    planilha['A1'].font = fonte
+    planilha['A1'] = 'Insumo'
+    planilha['B1'].font = fonte
+    planilha['B1'] = 'Preço'
+
     for numeroLinha in range(2, len(lista_insumos)):
         insumo_preco = str(lista_insumos[numeroLinha]).split(":")
-
-        planilha['A1'] = 'Insumo'
-        planilha['B1'] = 'Preço'
         # insere na primeira coluna o nome dos insumos
         planilha.cell(row=numeroLinha, column=1).value = insumo_preco[0].replace('{', '').replace('\'', '')
         # insere na segunda coluna o preco dos insumos
-        planilha.cell(row=numeroLinha, column=2).value = insumo_preco[1].replace('\'', '').replace('}', '')
+        planilha.cell(row=numeroLinha, column=2).value = insumo_preco[1].replace('\'', '').replace('\' ', '').replace('}', '')
 
     wb.save(site + '.xlsx')
 
