@@ -35,37 +35,43 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
     :param url do site que será realizado scraping
     :return: lista de insumos com todas as paginas.
     """
+    qtde_precos = 0  # guarda a quantidade de precos na primeira pagina
+
     while status == None:
         if site == 'BREWHEAD':
             pagina = bs4.BeautifulSoup(requisicao.text)
             insumo = pagina.select('div h4')
             precos = pagina.select('p[class="price"]')
             proximo = pagina.select('ul[class="pagination"]')
-            url = 'https://brewheadshop.com.br/insumos/maltes?' + 'page=%d' % num_pagina  # BREWHEAD
+            url_inicial = 'https://brewheadshop.com.br/insumos/maltes?' + 'page='  # BREWHEAD
         elif site == 'LAMAS':
             pagina = bs4.BeautifulSoup(requisicao.text)
             insumo = pagina.select('div[class="list-conteiner-name"]')
             precos = pagina.select('span[class="regular-price"]')
             proximo = pagina.select('a[class="next i-next"]')
-            url = 'http://loja.lamasbrewshop.com.br/insumos/malte-cereais.html?' + 'p=%d' % num_pagina  # LAMAS
+            url_inicial = 'http://loja.lamasbrewshop.com.br/insumos/malte-cereais.html?' + 'p='  # LAMAS
         elif site == 'WE':
             pagina = bs4.BeautifulSoup(requisicao.text)
             insumo = pagina.select('div[class="product-name"]')
             precos = pagina.select('b[class="sale"]')
             proximo = pagina.select('span[class="page-next"]')
-            url = 'http://loja.weconsultoria.com.br/maltes-s10038/?' + 'pagina=%d' % num_pagina  # WE
+            url_inicial = 'http://loja.weconsultoria.com.br/maltes-s10038/?' + 'pagina='  # WE
         elif site == 'CERVEJADACASA':
             pagina = bs4.BeautifulSoup(requisicao.text)
             insumo = pagina.select('div[itemprop="name"]')
             precos = pagina.select('meta[itemprop="price"]')
             proximo = pagina.select('a[rel="next"]')
-            url = 'http://www.cervejadacasa.com/loja/catalogo.php?loja=420472&categoria=55&pg=%d'
+            url_inicial = 'http://www.cervejadacasa.com/loja/catalogo.php?loja=420472&categoria=53&pg='  # CERVEJA DA CASA
         elif site == 'ARTEBREW':
             pagina = bs4.BeautifulSoup(requisicao.text)
-            insumo = pagina.select('tr h5')
+            insumo = pagina.select('h5 a')
             precos = pagina.select('span[class="regular-price"]')
-            proximo = pagina.select('a[class="next i-next"]')
-            url = 'http://cervejacaseira.com.br/materias-primas.html?cat=23&p=%d' % num_pagina  # ARTEBREW
+            # proximo = pagina.select('a[class="next i-next"]')
+            proximo = pagina.find('a', {'class': 'next i-next'})
+            url_inicial = 'http://cervejacaseira.com.br/materias-primas.html?cat=23&p='  # ARTBREW
+
+        if qtde_precos == 0:
+            qtde_precos = len(precos)  # atualiza a quantidade de precos uma vez, quando captura a primeira pagina
 
         if len(precos) > 0:
             for i in range(len(precos)):
@@ -82,11 +88,14 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
                     lista_insumos.append(insumos_preco)
 
             if len(proximo) > 0:
-                num_pagina += 1
-                url = url % num_pagina
-                requisicao, status = request_site(url, headers, num_pagina)
-                # res = requests.get(url, headers=headers)
-                # status_request = res.raise_for_status()
+                if qtde_precos == len(precos):
+                    num_pagina += 1
+                    url = url_inicial + str(num_pagina)
+                    requisicao, status = request_site(url, headers, num_pagina)
+                    # res = requests.get(url, headers=headers)
+                    # status_request = res.raise_for_status()
+                else:
+                    break
             else:
                 break
         else:
