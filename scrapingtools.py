@@ -55,7 +55,9 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
             insumo = pagina.select('div[class="product-name"]')
             precos = pagina.select('b[class="sale"]')
             proximo = pagina.select('span[class="page-next"]')
-            url_inicial = 'http://loja.weconsultoria.com.br/maltes-s10038/?' + 'pagina='  # WE
+            # url_inicial = 'http://loja.weconsultoria.com.br/maltes-s10038/?pagina='  # WE
+            # url_inicial = 'http://loja.weconsultoria.com.br/lupulos-s10037/?pagina='
+            url_inicial = 'http://loja.weconsultoria.com.br/fermentos-s10036/?pagina='
         elif site == 'CERVEJADACASA':
             pagina = bs4.BeautifulSoup(requisicao.text)
             insumo = pagina.select('div[itemprop="name"]')
@@ -127,3 +129,22 @@ def gera_planilha(lista_insumos, wb, planilha, site):
         planilha.cell(row=numeroLinha+2, column=2).value = insumo_preco[1].replace('\'', '').replace('\' ', '').replace('}', '')
 
     wb.save(site + '.xlsx')
+
+
+def gera_csv(lista_insumos, site):
+    import csv
+    import datetime
+
+    dia = datetime.datetime.now()
+    outputFile = open(site + '.csv', 'w', newline='')
+    outputWriter = csv.writer(outputFile)
+
+    for row in range(len(lista_insumos)):
+        insumo_preco = str(lista_insumos[row]).split(":")
+        outputWriter.writerow([site,
+                               insumo_preco[0].replace('{', '').replace('\'', '').replace('\\n', ''),
+                               insumo_preco[1].replace('\'', '').replace('\' ', '').replace('}', ''),
+                               dia.strftime("%d-%m-%Y")])
+        # outputWriter.writerow(insumo_preco[1].replace('\'', '').replace('\' ', '').replace('}', ''))
+
+    outputFile.close()
