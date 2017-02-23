@@ -3,6 +3,7 @@ import time
 import bs4
 import requests
 import openpyxl
+import re
 from openpyxl.styles import Font, NamedStyle
 
 
@@ -36,6 +37,7 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
     :return: lista de insumos com todas as paginas.
     """
     qtde_precos = 0  # guarda a quantidade de precos na primeira pagina
+    total_itens = ''
 
     while status == None:
         if site == 'BREWHEAD':
@@ -70,10 +72,13 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
             precos = pagina.select('span[class="regular-price"]')
             # proximo = pagina.select('a[class="next i-next"]')
             proximo = pagina.find('a', {'class': 'next i-next'})
-            url_inicial = 'http://cervejacaseira.com.br/materias-primas.html?cat=23&p='  # ARTBREW
+            total_itens = pagina.select('p[class="amount"]')
+            url_inicial = 'http://cervejacaseira.com.br/materias-primas.html?cat=91&p='  # ARTBREW
 
         if qtde_precos == 0:
             qtde_precos = len(precos)  # atualiza a quantidade de precos uma vez, quando captura a primeira pagina
+
+        total_itens_insumo = int(total_itens[0].text.replace("\n", "").split(" ")[0])
 
         if len(precos) > 0:
             for i in range(len(precos)):
