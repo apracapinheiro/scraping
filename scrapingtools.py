@@ -38,6 +38,7 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
     """
     qtde_precos = 0  # guarda a quantidade de precos na primeira pagina
     total_itens = ''
+    total_itens_pagina = 0
 
     while status == None:
         if site == 'BREWHEAD':
@@ -68,17 +69,18 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
             url_inicial = 'http://www.cervejadacasa.com/loja/catalogo.php?loja=420472&categoria=53&pg='  # CERVEJA DA CASA
         elif site == 'ARTEBREW':
             pagina = bs4.BeautifulSoup(requisicao.text)
-            insumo = pagina.select('h5 a')
+            insumo = pagina.select('h2 a')
+            # insumo = pagina.select('h5 a')
             precos = pagina.select('span[class="regular-price"]')
             # proximo = pagina.select('a[class="next i-next"]')
             proximo = pagina.find('a', {'class': 'next i-next'})
             total_itens = pagina.select('p[class="amount"]')
+            total_itens_pagina = int(total_itens[0].text.replace("\n", "").split(" ")[0])
             url_inicial = 'http://cervejacaseira.com.br/materias-primas.html?cat=91&p='  # ARTBREW
 
         if qtde_precos == 0:
             qtde_precos = len(precos)  # atualiza a quantidade de precos uma vez, quando captura a primeira pagina
 
-        total_itens_insumo = int(total_itens[0].text.replace("\n", "").split(" ")[0])
 
         if len(precos) > 0:
             for i in range(len(precos)):
@@ -87,6 +89,8 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
                     preco_insumo = str(precos[i].attrs['content'])
                     insumos_preco = {nome_insumo: preco_insumo}
                     lista_insumos.append(insumos_preco)
+                    if not proximo:
+                        break
                 else:  # BREWHEAD, LAMAS, WE
                     nome_insumo = insumo[i].get_text().strip()
                     preco_insumo = precos[i].get_text().strip()
@@ -95,6 +99,8 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
                     lista_insumos.append(insumos_preco)
 
             if len(proximo) > 0:
+                if total_itens_pagina == qtde_precos:  # ARTBREW
+                    break
                 if qtde_precos == len(precos):
                     num_pagina += 1
                     url = url_inicial + str(num_pagina)
