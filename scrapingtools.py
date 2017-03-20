@@ -67,6 +67,12 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
             precos = pagina.select('meta[itemprop="price"]')
             proximo = pagina.select('a[rel="next"]')
             url_inicial = 'http://www.cervejadacasa.com/loja/catalogo.php?loja=420472&categoria=53&pg='  # CERVEJA DA CASA
+        elif site == 'BAHIAMALTE':
+            pagina = bs4.BeautifulSoup(requisicao.text)
+            insumo = pagina.select('a h3')
+            precos = pagina.select('span[class="price"]')
+            proximo = pagina.select('a[class="next page-numbers"]')
+            url_inicial = 'http://www.bahiamalte.com.br/categoria-produto/maltes/page/'  # BAHIA MALTE
         elif site == 'ARTEBREW':
             pagina = bs4.BeautifulSoup(requisicao.text)
             insumo = pagina.select('h2 a')
@@ -94,6 +100,11 @@ def scraping_insumos(requisicao, status, num_pagina, lista_insumos, headers, sit
                 else:  # BREWHEAD, LAMAS, WE
                     nome_insumo = insumo[i].get_text().strip()
                     preco_insumo = precos[i].get_text().strip()
+                    posicao_espaco = preco_insumo.find(' ')  # sóo site BAHIA MALTE, os precos promocionais e atual vem
+                    # junto, a condicao embaixo verifica se possui 2 preços, caso possua, é capturado o preço atual
+                    # a partir da posicão do espaço entre os preços
+                    if posicao_espaco > -1:
+                        preco_insumo = preco_insumo[posicao_espaco:]
                     # if not esgotado[i].get_text() == 'Esgotado':
                     insumos_preco = {nome_insumo: preco_insumo}
                     lista_insumos.append(insumos_preco)
